@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 96" width="340" height="96" role="img" aria-label="온단골 ONDANGOL">
+  <title>온단골 (ONDANGOL)</title>
+
+  <!-- ── 심볼: 말풍선 안의 '켜진 온기' = 스쳐 간 손님이 단골로 켜지는 순간 (ON + 溫) ── -->
+  <g>
+    <!-- 말풍선 -->
+    <path d="M18 16 h56 a14 14 0 0 1 14 14 v30 a14 14 0 0 1 -14 14 h-30 l-14 12 v-12 h-12 a14 14 0 0 1 -14 -14 v-30 a14 14 0 0 1 14 -14 z"
+          fill="#191919"/>
+    <!-- 켜진 불빛 (ON) -->
+    <circle cx="46" cy="45" r="13.5" fill="#FEE500"/>
+    <!-- 켜짐을 뜻하는 광선 -->
+    <g stroke="#FEE500" stroke-width="3" stroke-linecap="round">
+      <line x1="46" y1="24" x2="46" y2="19"/>
+      <line x1="67" y1="45" x2="72" y2="45"/>
+      <line x1="25" y1="45" x2="20" y2="45"/>
+      <line x1="61" y1="30" x2="64.5" y2="26.5"/>
+      <line x1="31" y1="30" x2="27.5" y2="26.5"/>
+    </g>
+    <!-- 온기(하트) — 관계의 따뜻함 -->
+    <path d="M46 52 c-4.6 -3.7 -7.7 -6.2 -7.7 -9.4 a4.4 4.4 0 0 1 8.2 -2.4 a4.4 4.4 0 0 1 8.2 2.4 c0 3.2 -3.1 5.7 -7.7 9.4 z"
+          fill="#191919"/>
+  </g>
+
+  <!-- ── 워드마크 ── -->
+  <text x="104" y="57"
+        font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+        font-size="42" font-weight="800" fill="#191919" letter-spacing="-1.5">온단골</text>
+  <text x="106" y="77"
+        font-family="Pretendard, Arial, sans-serif"
+        font-size="11.5" font-weight="600" fill="#9a9186" letter-spacing="4">ONDANGOL</text>

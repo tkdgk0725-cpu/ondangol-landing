@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온단골 — 스쳐 간 손님을, 단골로 켜드립니다</title>
+<meta name="description" content="온단골은 리뷰 단 손님이 누군지 기억해요. 지난번에 뭘 시켰는지, 무슨 얘길 했는지까지. 배민·쿠팡이츠·두잇 리뷰 통합 관리.">
+<meta property="og:title" content="온단골 — 스쳐 간 손님을, 단골로 켜드립니다">
+<meta property="og:description" content="답글이 복붙 인사가 아니라, 이어지는 대화가 돼요. 무료로 먼저 써보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --yellow:#FEE500; --yellow-dk:#F2D900; --yellow-soft:#FFFBE0;
+    --ink:#191919; --ink-2:#4c4842; --ink-3:#8e877d;
+    --bg:#ffffff; --bg-2:#f7f6f3; --line:#e8e5df;
+    --chat-bg:#B2C7DA;
+    --ok:#1f7a4d; --ok-soft:#eaf6f0;
+    --radius:16px; --max:1040px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.7;
+    -webkit-font-smoothing:antialiased; word-break:keep-all;
+  }
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 22px}
+  section{padding:88px 0}
+  @media(max-width:640px){ section{padding:60px 0} }
+
+  /* nav */
+  nav{position:sticky; top:0; z-index:50; background:rgba(255,255,255,.9); backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:64px}
+  .brand{display:flex; align-items:center; gap:9px; text-decoration:none}
+  .brand svg{width:34px; height:34px}
+  .brand .nm{font-weight:800; font-size:21px; color:var(--ink); letter-spacing:-.03em}
+  .brand .en{font-size:10px; font-weight:600; color:var(--ink-3); letter-spacing:.16em; margin-top:2px}
+  .nav-cta{background:var(--yellow); color:var(--ink); text-decoration:none; padding:9px 18px; border-radius:999px; font-weight:700; font-size:14px}
+  .nav-cta:hover{background:var(--yellow-dk)}
+
+  /* hero */
+  .hero{padding:92px 0 76px; text-align:center; background:linear-gradient(180deg,var(--yellow-soft),#fff)}
+  .hero h1{font-size:clamp(30px,5.4vw,54px); font-weight:800; letter-spacing:-.035em; line-height:1.28}
+  .hero h1 em{font-style:normal; position:relative; z-index:1}
+  .hero h1 em::after{content:""; position:absolute; left:-2px; right:-2px; bottom:4px; height:38%; background:var(--yellow); z-index:-1; border-radius:3px}
+  .hero p.sub{margin:26px auto 0; max-width:600px; font-size:clamp(16px,2.1vw,19px); color:var(--ink-2)}
+  .btn{display:inline-block; background:var(--yellow); color:var(--ink); text-decoration:none; padding:17px 38px; border-radius:999px; font-weight:800; font-size:18px; box-shadow:0 10px 24px -12px rgba(0,0,0,.35); transition:transform .12s, background .15s; border:0; cursor:pointer; font-family:inherit}
+  .btn:hover{background:var(--yellow-dk); transform:translateY(-1px)}
+  .btn-row{margin-top:34px}
+  .btn-note{margin-top:14px; font-size:14px; color:var(--ink-3)}
+
+  h2{font-size:clamp(24px,3.6vw,36px); font-weight:800; letter-spacing:-.03em; line-height:1.35; text-align:center}
+  h2 em{font-style:normal; position:relative; z-index:1}
+  h2 em::after{content:""; position:absolute; left:-2px; right:-2px; bottom:2px; height:36%; background:var(--yellow); z-index:-1; border-radius:3px}
+  .lead{margin:20px auto 0; max-width:640px; text-align:center; color:var(--ink-2); font-size:17px}
+  .alt{background:var(--bg-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+
+  /* problem */
+  .prose{max-width:620px; margin:40px auto 0; font-size:17px; color:var(--ink-2)}
+  .prose p{margin-bottom:18px}
+  .prose .punch{margin-top:30px; font-size:19px; font-weight:700; color:var(--ink); text-align:center; padding:24px; background:var(--yellow-soft); border:1px solid var(--yellow); border-radius:var(--radius)}
+  .fake-reply{display:block; margin:6px 0 18px; padding:14px 18px; background:#eceae5; border-left:3px solid var(--ink-3); border-radius:0 10px 10px 0; color:var(--ink-3)}
+
+  /* chat (카톡 느낌) */
+  .chat{max-width:520px; margin:44px auto 0; background:var(--chat-bg); border-radius:22px; padding:22px 18px}
+  .chat-day{text-align:center; font-size:12px; color:#fff; background:rgba(0,0,0,.18); width:fit-content; margin:14px auto; padding:4px 12px; border-radius:999px; font-weight:600}
+  .msg{margin-bottom:12px; display:flex; flex-direction:column}
+  .msg .who{font-size:12px; color:#3d4f5e; margin-bottom:4px; font-weight:700}
+  .bubble{padding:12px 16px; border-radius:14px; font-size:15.5px; max-width:86%; line-height:1.6}
+  .msg.cust .bubble{background:#fff; border-top-left-radius:3px}
+  .msg.shop{align-items:flex-end}
+  .msg.shop .who{color:#2b3a46}
+  .msg.shop .bubble{background:var(--yellow); border-top-right-radius:3px; align-self:flex-end}
+  .chat-caption{margin-top:32px; text-align:center; font-size:17px; color:var(--ink-2)}
+  .chat-caption strong{display:block; margin-top:10px; font-size:20px; color:var(--ink); font-weight:800}
+
+  /* ── 단골 경제학 ── */
+  .econ-lead{max-width:640px; margin:36px auto 0; font-size:17px; color:var(--ink-2); text-align:center}
+  .vs{display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:760px; margin:40px auto 0}
+  @media(max-width:640px){ .vs{grid-template-columns:1fr} }
+  .col{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:24px; text-align:center}
+  .col.win{border:2px solid var(--yellow); box-shadow:0 10px 30px -18px rgba(0,0,0,.3)}
+  .col h4{font-size:16px; font-weight:800; margin-bottom:4px}
+  .col .memo{font-size:13px; color:var(--ink-3); margin-bottom:18px}
+  .row{display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid var(--line); font-size:15px}
+  .row span:first-child{color:var(--ink-3)}
+  .row span:last-child{font-weight:700}
+  .row.total{border-top:2px solid var(--ink); margin-top:6px; padding-top:12px; font-size:16px}
+  .row.total span:last-child{font-size:19px; font-weight:800}
+  .win .row.total span:last-child{color:var(--ok)}
+  .diff{max-width:760px; margin:22px auto 0; padding:24px; background:var(--yellow-soft); border:2px solid var(--yellow); border-radius:var(--radius); text-align:center; font-size:18px; font-weight:700; line-height:1.6}
+  .diff .hl{font-size:26px; font-weight:800; color:var(--ok)}
+  .diff span{display:block; margin-top:10px; font-size:15px; font-weight:500; color:var(--ink-2)}
+  .assume{max-width:760px; margin:16px auto 0; text-align:center; font-size:13px; color:var(--ink-3)}
+
+  .stable{max-width:660px; margin:46px auto 0; padding:28px; background:var(--ink); color:#fff; border-radius:var(--radius); text-align:center}
+  .stable b{color:var(--yellow)}
+  .stable .big{display:block; margin-top:12px; font-size:20px; font-weight:800; line-height:1.5}
+
+  /* calculator */
+  .calc{max-width:640px; margin:44px auto 0; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:28px}
+  .calc h3{text-align:center; font-size:19px; font-weight:800; margin-bottom:6px}
+  .calc .desc{text-align:center; font-size:14px; color:var(--ink-3); margin-bottom:22px}
+  .field{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+  .field label{font-size:15px; color:var(--ink-2); flex:1}
+  .field input{width:130px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:15px; text-align:right; font-family:inherit; outline:none}
+  .field input:focus{border-color:var(--yellow); background:var(--yellow-soft)}
+  .derived{margin:6px 0 18px; padding:12px 14px; background:var(--bg-2); border:1px dashed var(--line); border-radius:10px; font-size:14.5px; color:var(--ink-2); text-align:center}
+  .derived b{color:var(--ink); font-size:16px}
+  .derived span{color:var(--ink-3); font-size:13px}
+  .calc-out{margin-top:20px; padding:20px; background:var(--yellow-soft); border:1px solid var(--yellow); border-radius:12px; text-align:center}
+  .calc-out .m{font-size:14px; color:var(--ink-2)}
+  .calc-out .v{font-size:30px; font-weight:800; margin:6px 0; letter-spacing:-.02em}
+  .calc-out .y{font-size:14px; color:var(--ink-2)}
+  .calc-out .y b{font-size:17px; color:var(--ink)}
+
+  /* stages */
+  .stages{display:grid; gap:12px; max-width:700px; margin:44px auto 0}
+  .stage{display:flex; gap:16px; align-items:flex-start; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px}
+  .stage .n{flex:0 0 auto; background:var(--yellow); color:var(--ink); font-weight:800; font-size:13px; padding:6px 12px; border-radius:999px; white-space:nowrap}
+  .stage .t{font-size:16px; color:var(--ink-2)}
+  .stage .t b{display:block; color:var(--ink); margin-bottom:3px; font-size:15px}
+  .gap-note{max-width:700px; margin:26px auto 0; text-align:center; color:var(--ink-2); font-size:16px}
+  .gap-note b{color:var(--ink)}
+
+  /* cards */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:44px}
+  .card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:26px}
+  .card .tag{display:inline-block; background:var(--ok-soft); color:var(--ok); font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; margin-bottom:14px}
+  .card h3{font-size:18px; font-weight:800; margin-bottom:10px}
+  .card p{font-size:15.5px; color:var(--ink-2)}
+
+  .plats{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:36px}
+  .plat{background:#fff; border:1px solid var(--line); border-radius:999px; padding:11px 24px; font-weight:700; font-size:16px}
+
+  /* faq */
+  .faq{max-width:720px; margin:44px auto 0}
+  details{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; margin-bottom:12px}
+  details[open]{border-color:var(--yellow)}
+  summary{font-weight:700; font-size:16.5px; cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:14px; align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; font-size:22px; font-weight:800; flex:0 0 auto}
+  details[open] summary::after{content:"−"}
+  details p{margin-top:14px; color:var(--ink-2); font-size:16px}
+
+  /* final */
+  .final{background:var(--yellow); text-align:center}
+  .final h2 em::after{background:#fff}
+  .final .lead{color:#3f3a2e}
+  form.apply{max-width:440px; margin:34px auto 0; display:flex; flex-direction:column; gap:10px; text-align:left}
+  form.apply input[type=text]{width:100%; padding:15px 18px; font-size:16px; border:1px solid rgba(0,0,0,.15); border-radius:12px; background:#fff; font-family:inherit; outline:none}
+  form.apply input[type=text]:focus{border-color:var(--ink)}
+  form.apply .apps{background:rgba(255,255,255,.55); border:1px solid rgba(0,0,0,.1); border-radius:12px; padding:12px 16px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center}
+  form.apply .apps span{width:100%; font-size:13px; color:#5c5442; font-weight:700; margin-bottom:2px}
+  form.apply .apps label{font-size:15px; display:flex; align-items:center; gap:6px; cursor:pointer}
+  form.apply button{margin-top:4px; padding:17px 30px; font-size:17px; font-weight:800; background:var(--ink); color:#fff; border:0; border-radius:12px; cursor:pointer; font-family:inherit}
+  form.apply button:hover{background:#000}
+  form.apply button:disabled{opacity:.6; cursor:default}
+  form.apply .consent{display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:#5c5442; line-height:1.5; padding:2px 4px}
+  form.apply .consent input{margin-top:3px}
+  form.apply .consent a{color:#5c5442; text-decoration:underline}
+  .final .btn-note{color:#5c5442}
+
+  footer{padding:38px 0; text-align:center; font-size:13.5px; color:var(--ink-3); border-top:1px solid var(--line)}
+  footer a{color:var(--ink-3); text-decoration:none; margin:0 8px}
+  .biz{margin-top:12px; font-size:12.5px; line-height:1.9}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="brand">
+      <svg viewBox="0 0 96 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M18 16h56a14 14 0 0 1 14 14v30a14 14 0 0 1-14 14H44L30 86V74H18A14 14 0 0 1 4 60V30a14 14 0 0 1 14-14z" fill="#191919"/>
+        <circle cx="46" cy="45" r="13.5" fill="#FEE500"/>
+        <g stroke="#FEE500" stroke-width="3" stroke-linecap="round">
+          <line x1="46" y1="24" x2="46" y2="19"/><line x1="67" y1="45" x2="72" y2="45"/><line x1="25" y1="45" x2="20" y2="45"/><line x1="61" y1="30" x2="64.5" y2="26.5"/><line x1="31" y1="30" x2="27.5" y2="26.5"/>
+        </g>
+        <path d="M46 52c-4.6-3.7-7.7-6.2-7.7-9.4a4.4 4.4 0 0 1 8.2-2.4 4.4 4.4 0 0 1 8.2 2.4c0 3.2-3.1 5.7-7.7 9.4z" fill="#191919"/>
+      </svg>
+      <div><div class="nm">온단골</div><div class="en">ONDANGOL</div></div>
+    </a>
+    <a href="#start" class="nav-cta">무료로 써보기</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <h1>스쳐 간 손님을,<br><em>단골로 켜드립니다.</em></h1>
+    <p class="sub">
+      온단골은 리뷰 단 손님이 누군지 기억해요.<br>
+      지난번에 뭘 시켰는지, 무슨 얘길 했는지까지.<br>
+      그래서 답글이 복붙 인사가 아니라, <b>이어지는 대화</b>가 돼요.
+    </p>
+    <div class="btn-row"><a href="#start" class="btn">무료로 먼저 써보기</a></div>
+    <p class="btn-note">이메일이나 전화번호만 있으면 바로 시작돼요. 카드 등록 없어요.</p>
+  </div>
+</header>
+
+<!-- PROBLEM -->
+<section class="alt">
+  <div class="wrap">
+    <h2>단골 얼굴, 기억하고 싶으시죠.<br>근데 하루 리뷰 수십 개를<br>사람이 어떻게 다 기억해요.</h2>
+    <div class="prose">
+      <p>홀 장사할 땐 됐어요. 문 열고 들어오는 얼굴 보면 "어, 오셨어요!" 하고 알아봤으니까.</p>
+      <p>배달은 달라요. 손님이 닉네임 하나로 왔다 가요. 오늘 리뷰 30개 달리면, 그중에 지난달부터 꼬박꼬박 시켜준 단골이 섞여 있어요. 근데 사장님 눈엔 다 처음 보는 닉네임이에요.</p>
+      <p>그래서 단골한테도 처음 온 손님이랑 똑같은 답글이 나가요.</p>
+      <span class="fake-reply">"소중한 리뷰 감사합니다. 또 이용해주세요."</span>
+      <p>다섯 번을 시켜준 손님한테, 다섯 번 다 저 답글이 갔다고 생각해보세요. 그 손님, 서운하지 않았을까요.</p>
+      <p class="punch">사장님이 무심해서가 아니에요.<br>사람이 못 하는 일인 거예요.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 단골 경제학 -->
+<section>
+  <div class="wrap">
+    <h2>신규 손님은 <em>돈 주고</em> 데려와요.<br>단골은 그냥 와요.</h2>
+    <p class="econ-lead">
+      신규 손님 한 명 데려오려면 광고비가 들어가요. 그 손님이 한 번 먹고 안 오면, 그 광고비는 그냥 날아간 거예요.<br><br>
+      <b>단골은 광고비 0원이에요.</b> 알아서 또 와요.<br>
+      그래서 <b>매출이 똑같아도 손에 남는 돈이 달라져요.</b>
+    </p>
+
+    <div class="vs">
+      <div class="col">
+        <h4>A가게</h4>
+        <div class="memo">단골을 못 알아보는 가게</div>
+        <div class="row"><span>월 매출</span><span>3,000만원</span></div>
+        <div class="row"><span>월 주문</span><span>1,500건</span></div>
+        <div class="row"><span>재주문 비중</span><span>20%</span></div>
+        <div class="row"><span>광고로 채울 주문</span><span>1,200건</span></div>
+        <div class="row total"><span>월 광고비</span><span>−360만원</span></div>
+      </div>
+      <div class="col win">
+        <h4>B가게</h4>
+        <div class="memo">단골을 기억하는 가게</div>
+        <div class="row"><span>월 매출</span><span>3,000만원</span></div>
+        <div class="row"><span>월 주문</span><span>1,500건</span></div>
+        <div class="row"><span>재주문 비중</span><span>60%</span></div>
+        <div class="row"><span>광고로 채울 주문</span><span>600건</span></div>
+        <div class="row total"><span>월 광고비</span><span>−180만원</span></div>
+      </div>
+    </div>
+
+    <div class="diff">
+      매출은 <b>똑같이 3,000만원</b>인데,<br>
+      B가게는 매달 <b class="hl">180만원</b>이 더 남아요. 1년이면 <b class="hl">2,160만원</b>.
+      <span>같은 매출, 다른 순이익. 차이는 단골뿐이에요.</span>
+    </div>
+
+    <p class="assume">
+      ※ 이해를 돕기 위한 예시예요. 객단가 2만원 · <b>우리가게클릭 입찰가 1,000원, 클릭 3번에 주문 1건 → 주문 하나당 광고비 3,000원</b> 가정.<br>
+      입찰가는 1,000원이어도 실제로 나가는 건 그 3배예요. 사장님 가게 숫자는 다르니 아래에서 직접 계산해보세요.
+    </p>
+
+    <!-- 계산기 -->
+    <div class="calc">
+      <h3>우리 가게로 계산해보기</h3>
+      <p class="desc">사장님 가게 숫자를 넣어보세요. 바로 계산돼요.</p>
+
+      <div class="field"><label>월 주문 건수</label><input id="orders" type="number" value="1500" min="1"></div>
+      <div class="field"><label>우리가게클릭 입찰가 (클릭 1번당, 원)</label><input id="cpc" type="number" value="1000" min="0" step="100"></div>
+      <div class="field"><label>주문 1건 나오는 데 걸리는 클릭 수</label><input id="clicks" type="number" value="3" min="1" step="0.1"></div>
+
+      <div class="derived" id="derived">→ 신규 주문 1건당 실제 광고비 <b>3,000원</b> <span>(클릭 3번에 주문 1건)</span></div>
+
+      <div class="field"><label>지금 재주문 비중 (%)</label><input id="r1" type="number" value="20" min="0" max="90"></div>
+      <div class="field"><label>단골이 늘었을 때 재주문 비중 (%)</label><input id="r2" type="number" value="60" min="0" max="95"></div>
+
+      <div class="calc-out">
+        <div class="m">매달 아끼는 광고비</div>
+        <div class="v" id="save">180만원</div>
+        <div class="y">1년이면 <b id="saveY">2,160만원</b></div>
+      </div>
+      <p class="assume" style="margin-top:14px">
+        ※ 우리가게클릭 입찰가를 1,000원 걸어도, 클릭 3번에 주문 1건이면 <b>주문 하나에 실제로 나가는 광고비는 3,000원</b>이에요.<br>
+        재주문이 늘면 그만큼 광고로 채울 주문이 줄어든다는 단순 모델이에요. 온단골이 재주문 비중을 특정 수치로 올려준다고 약속하는 게 아니에요.
+      </p>
+    </div>
+
+    <div class="stable">
+      그리고 진짜 차이는 여기서 나요.<br>
+      <b>광고를 끄는 순간</b>, 단골 없는 가게는 주문이 뚝 끊겨요.<br>
+      단골이 쌓인 가게는 버텨요.
+      <span class="big">광고에 끌려다니는 장사와,<br>끊겨도 버티는 장사.<br>그게 <b>안정된 삶</b>의 차이예요.</span>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION / CHAT -->
+<section class="alt">
+  <div class="wrap">
+    <h2>온단골은 손님을 <em>기억해요.</em><br>그래서 답글이 이렇게 이어져요.</h2>
+    <p class="lead">그 손님이 예전에 뭘 시켰는지, 리뷰에 무슨 얘길 남겼는지 기억하고 있다가, 다음 리뷰에 그대로 이어서 대답해요.</p>
+
+    <div class="chat">
+      <div class="chat-day">3월 12일 · 첫 리뷰</div>
+      <div class="msg cust"><span class="who">손님</span>
+        <div class="bubble">여행 갔다와서 김치찜 먹었는데 너무 맛있어요</div></div>
+      <div class="msg shop"><span class="who">온단골이 단 답글</span>
+        <div class="bubble">여행은 어디 다녀오셨어요? 김치찜은 입맛에 맞으셨나요?</div></div>
+
+      <div class="chat-day">3주 뒤 · 같은 손님</div>
+      <div class="msg cust"><span class="who">손님</span>
+        <div class="bubble">영국 다녀왔어요! 너무 맛있어서 또 시켰어요</div></div>
+      <div class="msg shop"><span class="who">온단골이 단 답글</span>
+        <div class="bubble">영국이요! 좋으셨겠어요ㅎㅎ 또 찾아주셔서 감사해요</div></div>
+    </div>
+
+    <p class="chat-caption">
+      3주 전에 손님이 한 말을 기억하고 되물어요.<br>손님 입장에선 어떨까요?
+      <strong>"이 가게, 나를 기억하네."</strong>
+      그 순간 그냥 배달집이 아니라, 아는 가게가 돼요.<br>그리고 아는 가게엔, 또 와요.
+    </p>
+  </div>
+</section>
+
+<!-- STAGES -->
+<section>
+  <div class="wrap">
+    <h2>처음 온 손님과 열 번 온 손님,<br>같은 인사를 받으면 안 되잖아요.</h2>
+    <p class="lead">온단골은 그 손님이 몇 번째 온 손님인지 세고 있다가, 답글 온도를 바꿔요.</p>
+    <div class="stages">
+      <div class="stage"><span class="n">첫 방문</span><div class="t"><b>정중한 환대</b>"첫 주문 감사해요. 김치찜은 입맛에 맞으셨나요? 다음엔 계란찜도 한번 드셔보세요."</div></div>
+      <div class="stage"><span class="n">2~3번째</span><div class="t"><b>알아보기 시작</b>"또 찾아주셨네요! 지난번에 이어 김치찜, 감사해요ㅎㅎ"</div></div>
+      <div class="stage"><span class="n">4~9번째</span><div class="t"><b>편해진 사이</b>"오늘도 김치찜이시군요ㅎㅎ 이쯤 되면 저희가 더 반가워요."</div></div>
+      <div class="stage"><span class="n">10번+</span><div class="t"><b>단골 농담</b>"이번 주에만 두 번째세요ㅎㅎ 김치찜 떨어지면 저희가 먼저 연락드려야 할 판이에요."</div></div>
+    </div>
+    <p class="gap-note">
+      오랜만에 온 손님한텐 <b>"오랜만이에요! 잘 지내셨어요?"</b><br>
+      자주 오는 손님한텐 <b>"이번 주에만 두 번이나!"</b><br>
+      온단골은 횟수만 세는 게 아니라, <b>간격까지 봐요.</b>
+    </p>
+  </div>
+</section>
+
+<!-- SAFETY -->
+<section class="alt">
+  <div class="wrap">
+    <h2>자동이라고 막 나가면 큰일 나죠.<br>그래서 이렇게 막아놨어요.</h2>
+    <div class="cards">
+      <div class="card"><span class="tag">안전장치</span>
+        <h3>별점 3점 이하는 자동으로 안 나가요</h3>
+        <p>불만 리뷰에 기계가 해맑게 "감사합니다~" 달면 불난 데 기름 붓는 거예요. 3점 이하 리뷰는 답글을 써두기만 하고, 사장님이 확인하기 전엔 절대 등록 안 해요.</p></div>
+      <div class="card"><span class="tag">즉시 알림</span>
+        <h3>부정 리뷰는 카톡으로 바로 알려드려요</h3>
+        <p>악성 리뷰, 며칠 뒤에 발견하면 이미 손님들 다 봤어요. 달리는 즉시 카톡으로 알려드리고, 억울한 리뷰는 게시중단 신청까지 도와드려요.</p></div>
+      <div class="card"><span class="tag">사장님 말투</span>
+        <h3>이모지 안 써요. 사장님처럼 써요</h3>
+        <p>반짝이 이모지 안 써요. ㅎㅎ, ㅠㅠ 쓰는 진짜 사장님 말투로 써요. 사장님이 써온 답글 말투를 학습해서 가게마다 다르게 나가요. 손님이 봐도 "기계가 썼네" 소리 안 나오게요.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section>
+  <div class="wrap">
+    <h2>배민 보고, 쿠팡이츠 보고, 두잇 보고.<br><em>이제 한 군데만 보세요.</em></h2>
+    <div class="plats">
+      <span class="plat">배달의민족</span><span class="plat">쿠팡이츠</span><span class="plat">두잇</span>
+    </div>
+    <p class="lead" style="margin-top:34px">
+      앱 세 개 번갈아 열면서 리뷰 확인하는 거, 그것도 일이에요. 온단골은 세 곳 리뷰를 한 화면에 모아요.<br><br>
+      <b>답글은 밤에 알아서 달려요.</b><br>
+      마감하고 나면 답글 달 힘도 없잖아요. 시간 예약해두면 사장님 주무시는 동안 온단골이 알아서 달아둬요. 아침에 일어나면 다 정리돼 있어요.
+    </p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="alt">
+  <div class="wrap">
+    <h2>자주 묻는 질문</h2>
+    <div class="faq">
+      <details open><summary>손님이 누군지 어떻게 알아보는 거예요?</summary>
+        <p>리뷰 남긴 손님을 안정적인 ID로 식별해서 주문 이력이랑 리뷰 내용을 쌓아요. 그래서 "이 손님이 3주 전에 김치찜 시키고 여행 얘기를 했다"까지 기억하고 있다가, 다음 답글에 자연스럽게 이어서 써요.</p></details>
+      <details><summary>답글이 기계 티 나면 오히려 역효과 아니에요?</summary>
+        <p>그래서 이모지를 안 써요. ㅎㅎ, ㅠㅠ 같은 실제 사장님들이 쓰는 말투로 쓰고, 사장님이 원래 달던 답글 스타일을 학습해서 가게 말투를 따라가요. 마음에 안 드는 표현은 언제든 고칠 수 있어요.</p></details>
+      <details><summary>악성 리뷰나 별점 낮은 리뷰에도 자동으로 답글이 달려요?</summary>
+        <p>아니요. 별점 3점 이하는 답글을 써두기만 하고 사장님 확인 전엔 등록 안 해요. 부정 리뷰가 달리면 카톡으로 바로 알려드리고, 억울한 리뷰는 게시중단 신청도 도와드려요.</p></details>
+      <details><summary>어떤 배달앱을 지원하나요?</summary>
+        <p>배달의민족, 쿠팡이츠, 두잇 세 곳을 지원해요. 세 곳 리뷰를 한 화면에서 관리하고, 답글도 한 번에 처리돼요.</p></details>
+      <details><summary>무료체험은 뭘 준비해야 해요?</summary>
+        <p>이메일이나 전화번호만 있으면 돼요. 카드 등록도 없고, 복잡한 설정도 없어요. 신청하면 바로 시작할 수 있어요.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="final" id="start">
+  <div class="wrap">
+    <h2>손님은 맛만 보고 다시 오지 않아요.<br><em>기억해주는 가게</em>에 다시 와요.</h2>
+    <p class="lead">
+      사장님 가게에도 이미 단골이 있어요.<br>사장님이 못 알아봤을 뿐이에요.<br>오늘부터 온단골이 대신 기억할게요.
+    </p>
+    <form id="applyForm" class="apply">
+      <input type="text" name="storeName" placeholder="가게 이름" required>
+      <input type="text" name="contact" placeholder="연락처 (전화 또는 이메일)" required>
+      <div class="apps">
+        <span>사용 중인 배달앱 (여러 개 선택 가능)</span>
+        <label><input type="checkbox" name="apps" value="배달의민족"> 배달의민족</label>
+        <label><input type="checkbox" name="apps" value="쿠팡이츠"> 쿠팡이츠</label>
+        <label><input type="checkbox" name="apps" value="두잇"> 두잇</label>
+        <label><input type="checkbox" name="apps" value="요기요"> 요기요</label>
+        <label><input type="checkbox" name="apps" value="땡겨요"> 땡겨요</label>
+        <label><input type="checkbox" id="appEtcChk"> 기타</label>
+        <input type="text" id="appEtc" placeholder="기타 배달앱 이름" style="display:none">
+      </div>
+      <input type="text" name="storeCount" placeholder="매장 수 (예: 1개)">
+      <label class="consent"><input type="checkbox" id="agree" required> <span>무료체험 상담을 위한 개인정보(연락처 등) 수집·이용에 동의합니다. <a href="#" target="_blank">개인정보처리방침</a></span></label>
+      <button type="submit" id="applyBtn">무료로 먼저 써보기</button>
+    </form>
+    <p class="btn-note" id="formMsg">가게 이름과 연락처만 있으면 돼요. 마음에 안 들면 그냥 안 쓰시면 돼요.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div style="font-weight:800; font-size:18px">온단골 <span style="font-size:11px; color:var(--ink-3); letter-spacing:.14em">ONDANGOL</span></div>
+    <div style="margin-top:14px"><a href="#">이용약관</a>·<a href="#">개인정보처리방침</a>·<a href="#">고객센터</a></div>
+    <div class="biz">
+      상호 [채워넣기] · 대표 [채워넣기] · 사업자등록번호 [채워넣기]<br>
+      통신판매업신고번호 [채워넣기] · 주소 [채워넣기] · 문의 [채워넣기]
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var ids = ['orders','cpc','clicks','r1','r2'];
+  function won(n){
+    if (n >= 100000000) return (n/100000000).toFixed(1).replace(/\.0$/,'') + '억원';
+    if (n >= 10000)     return Math.round(n/10000).toLocaleString('ko-KR') + '만원';
+    return Math.round(n).toLocaleString('ko-KR') + '원';
+  }
+  function calc(){
+    var o   = Math.max(0, +document.getElementById('orders').value || 0);
+    var cpc = Math.max(0, +document.getElementById('cpc').value || 0);
+    var clk = Math.max(1, +document.getElementById('clicks').value || 1);
+    var r1  = Math.min(95, Math.max(0, +document.getElementById('r1').value || 0));
+    var r2  = Math.min(95, Math.max(0, +document.getElementById('r2').value || 0));
+
+    // 신규 주문 1건당 실제 광고비 = 우리가게클릭 입찰가 × (주문 1건당 필요한 클릭 수)
+    var cac = cpc * clk;
+    document.getElementById('derived').innerHTML =
+      '→ 신규 주문 1건당 실제 광고비 <b>' + Math.round(cac).toLocaleString('ko-KR') + '원</b> ' +
+      '<span>(클릭 ' + clk + '번에 주문 1건)</span>';
+
+    // 광고로 채워야 할 주문 = 총주문 × (1 - 재주문비중)
+    var ad1  = o * (1 - r1/100) * cac;
+    var ad2  = o * (1 - r2/100) * cac;
+    var save = Math.max(0, ad1 - ad2);
+
+    document.getElementById('save').textContent  = won(save);
+    document.getElementById('saveY').textContent = won(save * 12);
+  }
+  ids.forEach(function(id){
+    document.getElementById(id).addEventListener('input', calc);
+  });
+  calc();
+})();
+
+// ── 무료체험 신청폼 → 구글폼 전송 ──
+(function(){
+  var GF = 'https://docs.google.com/forms/d/e/1FAIpQLSeSfYJijnC50w7GsuSV4b4np6CIJxuHa741oQxEmJZuKTG8Xg/formResponse';
+  var MAP = {
+    storeName:  'entry.302086693',
+    contact:    'entry.2104382924',
+    apps:       'entry.1404393807',
+    storeCount: 'entry.1418259105'
+  };
+  var form = document.getElementById('applyForm');
+  var btn  = document.getElementById('applyBtn');
+  var msg  = document.getElementById('formMsg');
+  if(!form) return;
+
+  // '기타' 체크 시 입력칸 표시
+  var etcChk = document.getElementById('appEtcChk');
+  var etcTxt = document.getElementById('appEtc');
+  if(etcChk && etcTxt){
+    etcChk.addEventListener('change', function(){
+      etcTxt.style.display = etcChk.checked ? 'block' : 'none';
+      if(etcChk.checked) etcTxt.focus();
+    });
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var data = new URLSearchParams();
+    data.append(MAP.storeName,  form.storeName.value.trim());
+    data.append(MAP.contact,    form.contact.value.trim());
+    data.append(MAP.storeCount, form.storeCount.value.trim());
+    form.querySelectorAll('input[name=apps]:checked').forEach(function(c){
+      data.append(MAP.apps, c.value);
+    });
+    // 구글폼 '기타' 옵션 형식
+    if(etcChk && etcChk.checked && etcTxt.value.trim()){
+      data.append(MAP.apps, '__other_option__');
+      data.append(MAP.apps + '.other_option_response', etcTxt.value.trim());
+    }
+
+    btn.disabled = true; btn.textContent = '신청 중...';
+    // 구글폼은 CORS 응답을 안 주므로 no-cors 로 전송(성공/실패 응답은 못 읽지만 저장은 됨)
+    fetch(GF, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded
