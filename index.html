@@ -514,18 +514,31 @@
   form.addEventListener('submit', function(e){
     e.preventDefault();
     var data = new URLSearchParams();
-    data.append(MAP.storeName,  form.storeName.value.trim());
-    data.append(MAP.contact,    form.contact.value.trim());
-    data.append(MAP.storeCount, form.storeCount.value.trim());
+    data.append(MAP.storeName,  (form.storeName ? form.storeName.value : '').trim());
+    data.append(MAP.contact,    (form.contact ? form.contact.value : '').trim());
+    if(form.storeCount) data.append(MAP.storeCount, form.storeCount.value.trim());
+
     form.querySelectorAll('input[name=apps]:checked').forEach(function(c){
+      if(c.id === 'appEtcChk') return; // 기타는 아래에서 별도 처리
       data.append(MAP.apps, c.value);
     });
     // 구글폼 '기타' 옵션 형식
-    if(etcChk && etcChk.checked && etcTxt.value.trim()){
+    if(etcChk && etcChk.checked && etcTxt && etcTxt.value.trim()){
       data.append(MAP.apps, '__other_option__');
       data.append(MAP.apps + '.other_option_response', etcTxt.value.trim());
     }
 
-    btn.disabled = true; btn.textContent = '신청 중...';
-    // 구글폼은 CORS 응답을 안 주므로 no-cors 로 전송(성공/실패 응답은 못 읽지만 저장은 됨)
-    fetch(GF, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded
+    if(btn){ btn.disabled = true; }
+    fetch(GF, { method:'POST', mode:'no-cors', body:data })
+      .catch(function(){})
+      .finally(function(){
+        if(msg){ msg.textContent = '신청이 접수됐어요! 곧 연락드릴게요. 감사합니다 :)'; msg.style.color = '#1f7a4c'; }
+        form.reset();
+        if(etcTxt){ etcTxt.style.display = 'none'; }
+        if(btn){ btn.disabled = false; }
+      });
+  });
+})();
+</script>
+</body>
+</html>
