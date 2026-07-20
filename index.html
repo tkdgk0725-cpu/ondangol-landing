@@ -36,6 +36,41 @@
 .hv15:hover{color:#191919 !important}
 .hv16:hover{color:#191919 !important}
 </style>
+<style>
+/* ===== 반응형 (모바일·태블릿) — 인라인 스타일 override ===== */
+img { max-width: 100%; }
+
+/* 태블릿 이하: 가로 2단 배치(min-width 큰 flex 자식)를 세로로 쌓기 */
+@media (max-width: 820px) {
+  [style*="min-width:340px"],
+  [style*="min-width:320px"],
+  [style*="min-width:300px"],
+  [style*="min-width:280px"],
+  [style*="min-width:260px"] {
+    min-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+}
+
+/* 폰: 좌우 여백·큰 패널 여백·제목 글자 축소 */
+@media (max-width: 560px) {
+  /* 중앙 컨테이너 좌우 여백 축소 (세로 여백은 유지) */
+  [style*="margin:0 auto"] {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+  /* 큰 패널 안쪽 여백 축소 */
+  [style*="padding:48px 44px"] { padding: 30px 20px !important; }
+  [style*="padding:56px 40px"] { padding: 38px 20px !important; }
+  /* 제목 글자 축소 */
+  [style*="font-size:50px"] { font-size: 32px !important; line-height: 1.18 !important; }
+  [style*="font-size:44px"] { font-size: 34px !important; }
+  [style*="font-size:36px"] { font-size: 25px !important; }
+  [style*="font-size:34px"] { font-size: 24px !important; }
+  [style*="font-size:32px"] { font-size: 23px !important; }
+  [style*="font-size:30px"] { font-size: 22px !important; }
+}
+</style>
 </head>
 <body>
 
