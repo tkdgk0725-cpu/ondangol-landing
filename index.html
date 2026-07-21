@@ -413,6 +413,7 @@ img { max-width: 100%; }
             <input type="text" id="appEtc" placeholder="기타 배달앱 이름" style="display:none;flex:1;min-width:120px;height:36px;background:#F7F6F3;border:1px solid #EDE9DF;border-radius:9px;padding:0 12px;font-size:13px;font-family:inherit;outline:none">
           </div>
         </div>
+        <input type="text" id="hp_company" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
         <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#5C4B0E;line-height:1.5;text-align:left;cursor:pointer"><input type="checkbox" id="agree" style="width:15px;height:15px;margin-top:2px;accent-color:#191919"><span>무료체험 상담을 위한 개인정보(연락처 등) 수집·이용에 동의합니다. <a href="privacy.html" target="_blank" style="color:#191919;text-decoration:underline">개인정보처리방침</a></span></label>
         <button type="button" id="applyBtn" style="height:54px;border-radius:13px;background:#191919;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;color:#FEE500;margin-top:4px;border:none;cursor:pointer;font-family:inherit" class="hv9">무료로 먼저 써보기 →</button>
         <div id="formMsg" style="font-size:13.5px;font-weight:700;text-align:center;min-height:18px;color:#1f7a4c"></div>
@@ -462,38 +463,61 @@ img { max-width: 100%; }
 </div>
 
 <script>
-// ── 무료체험 신청 인라인 폼 → 구글폼 전송(기존 연동 그대로) ──
+// ── 무료체험 신청 인라인 폼 → 우리 서버(/public/leads) 우선, 실패 시 구글폼 폴백 ──
+//    서버가 죽어도 리드 유실 없게 no-cors 구글폼으로 폴백한다. 허니팟(company_url) 함께 전송.
 (function(){
+  var LEADS='https://eulji-auth-server.onrender.com/public/leads';
   var GF='https://docs.google.com/forms/d/e/1FAIpQLSeSfYJijnC50w7GsuSV4b4np6CIJxuHa741oQxEmJZuKTG8Xg/formResponse';
   var MAP={store:'entry.302086693',contact:'entry.2104382924',apps:'entry.1404393807',count:'entry.1418259105'};
   var btn=document.getElementById('applyBtn'), msg=document.getElementById('formMsg');
   var etcChk=document.getElementById('appEtcChk'), etcTxt=document.getElementById('appEtc');
   if(etcChk&&etcTxt){ etcChk.addEventListener('change',function(){ etcTxt.style.display=etcChk.checked?'block':'none'; if(etcChk.checked)etcTxt.focus(); }); }
   if(!btn) return;
+
+  function collectApps(){
+    var arr=[];
+    document.querySelectorAll('input[name=apps]:checked').forEach(function(c){ arr.push(c.value); });
+    if(etcChk&&etcChk.checked&&etcTxt&&etcTxt.value.trim()) arr.push(etcTxt.value.trim());
+    return arr;
+  }
+  function googleFallback(store,contact,count,etc){
+    // no-cors fire-and-forget — 서버 실패 시 리드 유실 방지
+    var data=new URLSearchParams();
+    data.append(MAP.store,store); data.append(MAP.contact,contact);
+    if(count) data.append(MAP.count,count);
+    document.querySelectorAll('input[name=apps]:checked').forEach(function(c){ data.append(MAP.apps,c.value); });
+    if(etc){ data.append(MAP.apps,'__other_option__'); data.append(MAP.apps+'.other_option_response',etc); }
+    return fetch(GF,{method:'POST',mode:'no-cors',body:data}).catch(function(){});
+  }
+  function done(){
+    msg.style.color='#1f7a4c'; msg.textContent='신청이 접수됐어요! 곧 연락드릴게요. 감사합니다 :)';
+    document.getElementById('f_store').value=''; document.getElementById('f_contact').value='';
+    document.getElementById('f_count').value=''; document.getElementById('agree').checked=false;
+    document.querySelectorAll('input[name=apps]:checked').forEach(function(c){ c.checked=false; });
+    if(etcChk)etcChk.checked=false; if(etcTxt){ etcTxt.value=''; etcTxt.style.display='none'; }
+    btn.disabled=false;
+  }
+
   btn.addEventListener('click',function(){
     var store=(document.getElementById('f_store').value||'').trim();
     var contact=(document.getElementById('f_contact').value||'').trim();
     var count=(document.getElementById('f_count').value||'').trim();
     var agree=document.getElementById('agree').checked;
+    var hp=(document.getElementById('hp_company')||{}).value||'';
     if(!store||!contact){ msg.style.color='#C4553F'; msg.textContent='가게 이름과 연락처를 입력해 주세요.'; return; }
     if(!agree){ msg.style.color='#C4553F'; msg.textContent='개인정보 수집·이용에 동의해 주세요.'; return; }
-    var data=new URLSearchParams();
-    data.append(MAP.store,store); data.append(MAP.contact,contact);
-    if(count) data.append(MAP.count,count);
-    document.querySelectorAll('input[name=apps]:checked').forEach(function(c){ data.append(MAP.apps,c.value); });
-    if(etcChk&&etcChk.checked&&etcTxt&&etcTxt.value.trim()){
-      data.append(MAP.apps,'__other_option__');
-      data.append(MAP.apps+'.other_option_response',etcTxt.value.trim());
-    }
+    var etc=(etcChk&&etcChk.checked&&etcTxt&&etcTxt.value.trim())?etcTxt.value.trim():'';
     btn.disabled=true;
-    fetch(GF,{method:'POST',mode:'no-cors',body:data}).catch(function(){}).finally(function(){
-      msg.style.color='#1f7a4c'; msg.textContent='신청이 접수됐어요! 곧 연락드릴게요. 감사합니다 :)';
-      document.getElementById('f_store').value=''; document.getElementById('f_contact').value='';
-      document.getElementById('f_count').value=''; document.getElementById('agree').checked=false;
-      document.querySelectorAll('input[name=apps]:checked').forEach(function(c){ c.checked=false; });
-      if(etcChk)etcChk.checked=false; if(etcTxt){ etcTxt.value=''; etcTxt.style.display='none'; }
-      btn.disabled=false;
-    });
+
+    var payload={kind:'free_trial',store_name:store,contact:contact,store_count:count,
+                 apps:collectApps(),agreed:true,company_url:hp,source:'homepage'};
+    fetch(LEADS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      .then(function(r){ return r.json().catch(function(){ return {ok:r.ok}; }); })
+      .then(function(d){
+        if(d&&d.ok){ done(); }                                       // 서버 접수 성공
+        else { googleFallback(store,contact,count,etc).then(done); } // 서버 거절 → 폴백
+      })
+      .catch(function(){ googleFallback(store,contact,count,etc).then(done); }); // 네트워크 실패 → 폴백
   });
 })();
 </script>
