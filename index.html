@@ -9,6 +9,32 @@
 <meta property="og:description" content="답글이 복붙 인사가 아니라, 이어지는 대화가 돼요. 무료로 먼저 써보세요.">
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<!-- ★Meta 픽셀(2026-08-20) — 광고 성과 측정용.
+     ★픽셀 ID 가 비어 있으면 ★아무것도 로드하지 않는다(fail-safe): facebook.net 요청 0건·콘솔 에러 없음.
+     매니저가 발급 후 아래 META_PIXEL_ID 한 줄만 채우면 동작한다.
+     ★자동 고급 매칭(Automatic Advanced Matching)은 ★끈다 — 켜져 있으면 픽셀이 우리 폼의
+     연락처를 스스로 긁어 해시해 Meta 로 보낸다(처리방침 고지 없이는 안 됨). -->
+<script>
+  var META_PIXEL_ID = "";   // ★매니저가 발급 후 채운다. 비어 있으면 로드 안 함.
+  window.ondangolTrackLead = function () {};   // 기본은 무동작(픽셀 없어도 호출부가 안전)
+  (function () {
+    var id = (META_PIXEL_ID || "").trim();
+    if (!id || /^(YOUR|XXX|TODO)/i.test(id)) return;   // ★플레이스홀더도 로드 안 함
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    // ★autoConfig:false = 자동 고급 매칭·자동 이벤트 수집 차단(연락처 유출 방지)
+    fbq('set', 'autoConfig', false, id);
+    fbq('init', id, {}, { autoConfig: false });
+    fbq('track', 'PageView');
+    // ★리드 전환은 ★폼이 실제 접수됐을 때만(아래 폼 스크립트가 호출). 금액·연락처·이름은 보내지 않는다.
+    window.ondangolTrackLead = function () {
+      try { fbq('track', 'Lead', { content_name: 'free_trial_lead' }); } catch (e) {}
+    };
+  })();
+</script>
 <style>
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -538,7 +564,11 @@ img { max-width: 100%; }
     fetch(LEADS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
       .then(function(r){ return r.json().catch(function(){ return {ok:r.ok}; }); })
       .then(function(d){
-        if(d&&d.ok){ done(); return; }                               // 서버 접수 성공
+        if(d&&d.ok){
+          // ★Meta Lead 전환: ★우리 DB(/public/leads)에 행이 생긴 경우에만 1회.
+          //   ★버튼 클릭·구글폼 폴백·실패에는 쏘지 않는다 — 그래야 Meta 전환수 = leads 행수(1:1) 로 대조된다.
+          try { window.ondangolTrackLead && window.ondangolTrackLead(); } catch(e){}
+          done(); return; }                                          // 서버 접수 성공
         // ★서버가 사유와 함께 거절(예: 동의 누락·형식 오류)이면 ★그대로 보여준다(조용한 성공 처리 금지).
         if(d&&d.reason){ fail(d.reason); return; }
         googleFallback(store,contact,count,etc).then(done).catch(function(){ fail(); }); // 사유 불명 → 폴백
