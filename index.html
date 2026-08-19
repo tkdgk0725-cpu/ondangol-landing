@@ -567,7 +567,9 @@ img { max-width: 100%; }
         if(d&&d.ok){
           // ★Meta Lead 전환: ★우리 DB(/public/leads)에 행이 생긴 경우에만 1회.
           //   ★버튼 클릭·구글폼 폴백·실패에는 쏘지 않는다 — 그래야 Meta 전환수 = leads 행수(1:1) 로 대조된다.
-          try { window.ondangolTrackLead && window.ondangolTrackLead(); } catch(e){}
+          //   ★허니팟(hp)이 채워지면 서버는 봇으로 보고 ★저장하지 않은 채 ok:true 를 준다(auth_server.py).
+          //   그대로 쏘면 "DB 행 0 · Meta 전환 1" 이 되어 대조가 깨지므로 ★여기서 막는다.
+          if(!hp){ try { window.ondangolTrackLead && window.ondangolTrackLead(); } catch(e){} }
           done(); return; }                                          // 서버 접수 성공
         // ★서버가 사유와 함께 거절(예: 동의 누락·형식 오류)이면 ★그대로 보여준다(조용한 성공 처리 금지).
         if(d&&d.reason){ fail(d.reason); return; }
